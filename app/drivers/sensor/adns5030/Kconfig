@@ -1,0 +1,8 @@
+# Copyright (c) 2020 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+menuconfig ADNS5030
+	bool "ADNS5030 Optical Sensor"
+	depends on SPI
+	help
+	  Enable driver for ADNS5030 optical sensors.

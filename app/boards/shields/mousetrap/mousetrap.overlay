@@ -33,3 +33,20 @@
 
 	};
 };
+
+
+&spi0 {
+	compatible = "nordic,nrf-spim";
+	status = "okay";
+	mosi-pin = <6>;
+	sck-pin = <5>;
+	miso-pin = <7>;
+	cs-gpios = <&pro_micro 21 GPIO_ACTIVE_LOW>;
+
+	mysensor: adns5030@0 {
+		compatible = "avago,adns5030";
+		label = "adns5030";
+		reg = <0>;
+		spi-max-frequency = <400000>;
+	};
+};

@@ -1,0 +1,14 @@
+description: |
+  Sensor driver for the Avago ADNS5030 optical sensor
+
+compatible: "avago,adns5030"
+
+include: spi-device.yaml
+
+properties:
+  reg:
+    required: true
+    
+  label:
+    type: string
+    required: true
