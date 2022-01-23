@@ -95,6 +95,23 @@ static int adns5030_init(const struct device *dev)
 
 	data->spi_config.operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_MODE_CPOL | SPI_MODE_CPHA;
 	data->spi_config.frequency = cfg->spi_max_frequency;
+	data->spi_config.slave = cfg->spi_slave;
+
+#if DT_INST_SPI_DEV_HAS_CS_GPIOS(0)
+	/* handle SPI CS thru GPIO if it is the case */
+
+	data->adns5030_cs_ctrl.gpio_dev = device_get_binding(cfg->gpio_cs_port);
+	if (!data->adns5030_cs_ctrl.gpio_dev) {
+		LOG_ERR("Unable to get GPIO SPI CS device");
+		return -ENODEV;
+	}
+
+	data->adns5030_cs_ctrl.gpio_pin = cfg->cs_gpio;
+	data->adns5030_cs_ctrl.gpio_dt_flags = cfg->cs_flags;
+	data->adns5030_cs_ctrl.delay = 0U;
+
+	data->spi_config.cs = &data->adns5030_cs_ctrl;
+#endif
 
 	return 0;
 }
@@ -103,6 +120,13 @@ static struct adns5030_dev_data adns5030_data;
 
 static const struct adns5030_dev_config adns5030_config = {
 	.spi_master_name = DT_INST_BUS_LABEL(0),
+	.spi_slave = DT_INST_REG_ADDR(0),
+	.spi_max_frequency = DT_INST_PROP(0, spi_max_frequency),
+#if DT_INST_SPI_DEV_HAS_CS_GPIOS(0)
+	.gpio_cs_port = DT_INST_SPI_DEV_CS_GPIOS_LABEL(0),
+	.cs_gpio = DT_INST_SPI_DEV_CS_GPIOS_PIN(0),
+	.cs_flags = DT_INST_SPI_DEV_CS_GPIOS_FLAGS(0),
+#endif
 };
 
 // TODO: Add power management

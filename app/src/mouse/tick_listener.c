@@ -12,6 +12,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/events/mouse_tick.h>
 #include <zmk/endpoints.h>
 #include <zmk/mouse.h>
+#include <drivers/sensor.h>
 
 #include <sys/util.h> // CLAMP
 
@@ -79,14 +80,37 @@ static struct vector2d update_movement(struct vector2d *remainder,
 }
 
 static void mouse_tick_handler(const struct zmk_mouse_tick *tick) {
+    /*
     struct vector2d move = update_movement(&move_remainder, &(tick->move_config), tick->max_move,
                                            tick->timestamp, tick->start_time);
+    
     zmk_hid_mouse_movement_update((int16_t)CLAMP(move.x, INT16_MIN, INT16_MAX),
                                   (int16_t)CLAMP(move.y, INT16_MIN, INT16_MAX));
     struct vector2d scroll = update_movement(&scroll_remainder, &(tick->scroll_config),
                                              tick->max_scroll, tick->timestamp, tick->start_time);
     zmk_hid_mouse_scroll_update((int8_t)CLAMP(scroll.x, INT8_MIN, INT8_MAX),
                                 (int8_t)CLAMP(scroll.y, INT8_MIN, INT8_MAX));
+    */
+
+    
+    if (sensor_sample_fetch(mouse_dev) < 0) {
+        LOG_DBG("Error fetching sample");
+        return;
+    }
+    
+    struct sensor_value dx;
+    struct sensor_value dy;
+    if (sensor_channel_get(mouse_dev, SENSOR_CHAN_POS_DX, &dx) < 0) {
+        LOG_DBG("Unable to get mouse dX");
+        return;
+    }
+
+    if (sensor_channel_get(mouse_dev, SENSOR_CHAN_POS_DY, &dy) < 0) {
+        LOG_DBG("Unable to get mouse dY");
+        return;
+    }
+
+    zmk_hid_mouse_movement_update((int8_t)dx.val1, (int8_t)dy.val1);
 }
 
 int zmk_mouse_tick_listener(const zmk_event_t *eh) {
